@@ -16,4 +16,4 @@ for line in arq:
 for li in big_list[0]:
     total += li
 
-print(total)
+print("Total de valores encontrados: {total}")
