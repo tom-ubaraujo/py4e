@@ -17,3 +17,4 @@ for li in big_list[0]:
     total += li
 
 print("Total de valores encontrados: {total}")
+print("teste")
