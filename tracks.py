@@ -8,12 +8,18 @@ cur = conn.cursor()
 # make new tables using executescript()
 cur.executescript('''
 DROP TABLE IF EXISTS Artist;
+DROP TABLE IF EXISTS Genre;
 DROP TABLE IF EXISTS Album;
 DROP TABLE IF EXISTS Track;
 
 CREATE TABLE Artist(
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
     name TEXT UNIQUE
+);
+
+CREATE TABLE Genre (
+    id  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    name    TEXT UNIQUE
 );
 
 CREATE TABLE Album (
@@ -26,6 +32,7 @@ CREATE TABLE Track(
     id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
     title TEXT UNIQUE,
     album_id INTEGER,
+    genre_id INTEGER,
     len INTEGER,
     rating INTEGER,
     count INTEGER
@@ -34,7 +41,7 @@ CREATE TABLE Track(
 
 fname = input('Enter file name: ')
 if (len(fname) <1 ):
-    fname = 'Library.xml'
+    fname = 'Library_assign.xml'
 
 def lookup(d, key):
     found = False
@@ -63,8 +70,9 @@ for song in all:
     count = lookup(song, 'Play Count')
     rating = lookup(song, 'Rating')
     length = lookup(song, 'Total Time')
+    genre = lookup(song, 'Genre')
 
-    if name is None or artist is None or album is None:
+    if name is None or artist is None or album is None or genre is None:
         continue
     
     print(name, artist, album, count, rating, length)
@@ -74,14 +82,19 @@ for song in all:
     cur.execute('SELECT id FROM Artist WHERE name = ?', (artist, ))
     artist_id = cur.fetchone()[0]
 
+    cur.execute('''INSERT OR IGNORE INTO Genre(name)
+        VALUES (?)''',(genre,))
+    cur.execute('SELECT id FROM Genre WHERE name = ?', (genre, ))
+    genre_id = cur.fetchone()[0]
+
     cur.execute('''INSERT OR IGNORE INTO Album (title, artist_id) 
         VALUES ( ?, ? )''', ( album, artist_id ) )
     cur.execute('SELECT id FROM Album WHERE title = ? ', (album, ))
     album_id = cur.fetchone()[0]
 
     cur.execute('''INSERT OR REPLACE INTO Track
-        (title, album_id, len, rating, count) 
-        VALUES ( ?, ?, ?, ?, ? )''', 
-        ( name, album_id, length, rating, count ) )
+        (title, album_id, genre_id, len, rating, count) 
+        VALUES ( ?, ?, ?, ?, ?, ? )''', 
+        ( name, album_id, genre_id, length, rating, count ) )
 
     conn.commit()
